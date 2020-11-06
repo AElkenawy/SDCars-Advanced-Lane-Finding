@@ -1,39 +1,45 @@
-## Advanced Lane Finding
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
-![Lanes Image](./examples/example_output.jpg)
+# **Advanced Lane Finding** 
 
-In this project, your goal is to write a software pipeline to identify the lane boundaries in a video, but the main output or product we want you to create is a detailed writeup of the project.  Check out the [writeup template](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) for this project and use it as a starting point for creating your own writeup.  
+## Project goal
 
-Creating a great writeup:
----
-A great writeup should include the rubric points as well as your description of how you addressed each point.  You should include a detailed description of the code used in each step (with line-number references and code snippets where necessary), and links to other supporting documents or external references.  You should include images in your writeup to demonstrate how your code works with examples.  
+Identifying road lanes using a robust algorithm against different color intensities and lightness.
 
-All that said, please be concise!  We're not looking for you to write a book here, just a brief description of how you passed each rubric point, and references to the relevant code :). 
+## Project steps
 
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup.
+1. Camera calibration: computation of camera matrix, distortion coefficients, rotation and translation vectors using a set of chessboard images.
+2. Distortion correction: applying calibration outputs to correct a distorted image.
+<img src="./output_images/1 undistort_output.png" alt="Distortion correction" width="500" height="170">
 
-The Project
----
+3. Images thresholding: extracting of useful information by doing color/gradient thresholding.
+<img src="./output_images/2 binary_combo.png" alt="Hough Transform" width="300" height="170">
 
-The goals / steps of this project are the following:
+4. Perspective transformation: transform image from normal camera 2D view to bird-eye view.
+<img src="./output_images/3 warped_straight_lines.png" alt="Hough Transform" width="500" height="170">
 
-* Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
-* Apply a distortion correction to raw images.
-* Use color transforms, gradients, etc., to create a thresholded binary image.
-* Apply a perspective transform to rectify binary image ("birds-eye view").
-* Detect lane pixels and fit to find the lane boundary.
-* Determine the curvature of the lane and vehicle position with respect to center.
-* Warp the detected lane boundaries back onto the original image.
-* Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
+5. Lanes detection: detect lanes and fitting suitable polynomial curves to them.
+<img src="./output_images/line-4 color_fit_lines.png" alt="Hough Transform" width="300" height="170">
 
-The images for camera calibration are stored in the folder called `camera_cal`.  The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file.  
+6. Curvature radius and car offset calculation: calculate lane curvature and car offset with respect to lanes.
+7. Lanes region output: displaying lanes region by unwarping bird-eye view image and displaying lanes curvature and car offset.
+<img src="./output_images/5 example_output.png" alt="Hough Transform" width="300" height="170">
 
-To help the reviewer examine your work, please save examples of the output from each stage of your pipeline in the folder called `output_images`, and include a description in your writeup for the project of what each image shows.    The video called `project_video.mp4` is the video your pipeline should work well on.  
+## Pipeline description
 
-The `challenge_video.mp4` video is an extra (and optional) challenge for you if you want to test your pipeline under somewhat trickier conditions.  The `harder_challenge.mp4` video is another optional challenge and is brutal!
+Pipeline `pipeline(image)` returns `lanes_output` image of camera video frame, indicating lane lines area in green.
+1 - Camera calibration is done using `cv2.calibrateCamera`
+2 - Distortion correction is done using `undistort(img)` routine
+3 - Color, Gradient Absolute, Gradient direction and Gradient magnitude is used to threshold images:
+```comb_binary[((abs_binary == 1) & (mag_binary == 1)) | (col_binary == 1) | ((mag_binary == 1) & (dir_binary == 1))] = 1```
+4 - Perspective transformation is done using `pers_tranform(image)` routine. Four source points are mapped into four destination points of bird-eye view, described in the following table:
+|   | Source  |  Destination  |
+|-----------|--------|--------|
+|Top left | (588, 451)   |  (250, 0)  |
+|Top right | (690, 451) |  (1030, 0)  |
+| Bottom right | (1055, 678)   |  (1030, 720)  |
+| Bottom left | (251, 678)  |  (250, 720)  |
+5 - Two polynomials are fit to right and left lanes using `fit_polynomial`
+6 - Lane curvature is measured using formula of: R_curve=  ( [1 + (2Ay+B) ^ 2 ]^(3⁄2) )/|2A| 
 
-If you're feeling ambitious (again, totally optional though), don't stop there!  We encourage you to go out and take video of your own, calibrate your camera and show us how you would implement this project from scratch!
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+### Basic Build Instructions
+The jupyter notebook _main.ipynb_ is containing necessary routines. The original camera video is located in the root path and algorithm output will be generated in _./output_video_ path.
